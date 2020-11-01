@@ -6,6 +6,11 @@ const FRICTION = 500
 
 var velocity = Vector2.ZERO
 
+# $ Notation let's us select nodes from the same scene
+# Instantiate using `onready` to ensure child is ready. Similar to
+# instantiating in _ready(), just a sintatic sugar
+onready var animationPlayer = $AnimationPlayer
+
 func _physics_process(delta):
 	# DON'T modify position manually
 	# position.x += 10
@@ -18,7 +23,12 @@ func _physics_process(delta):
 	
 	# multiply by delta makes movement relative to framerate
 	if input_vector != Vector2.ZERO:
+		if input_vector.x > 0:
+			animationPlayer.play("RunRight")
+		else:
+			animationPlayer.play("RunLeft")
 		velocity = velocity.move_toward(input_vector * MAX_SPEED, ACCELERATION * delta)
 	else:
+		animationPlayer.play("IdleDown")
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 	velocity = move_and_slide(velocity)
