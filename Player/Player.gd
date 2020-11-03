@@ -3,8 +3,10 @@ extends KinematicBody2D
 const MAX_SPEED = 80
 const ACCELERATION = 500
 const FRICTION = 500
+const ROLL_SPEED = 125
 
 var velocity = Vector2.ZERO
+var roll_vector = Vector2.DOWN
 
 enum {
 	MOVE,
@@ -29,7 +31,7 @@ func _process(delta):
 		MOVE:
 			move_state(delta)
 		ROLL:
-			pass
+			roll_state()
 		ATTACK:
 			attack_state()
 
@@ -45,25 +47,43 @@ func move_state(delta: float):
 	
 	# multiply by delta makes movement relative to framerate
 	if input_vector != Vector2.ZERO:
+		roll_vector = input_vector
+		
 		animationTree.set("parameters/Idle/blend_position", input_vector)
 		animationTree.set("parameters/Run/blend_position", input_vector)
 		animationTree.set("parameters/Attack/blend_position", input_vector)
+		animationTree.set("parameters/Roll/blend_position", input_vector)
 		animationState.travel("Run")
 		velocity = velocity.move_toward(input_vector * MAX_SPEED, ACCELERATION * delta)
 	else:
 		animationState.travel("Idle")
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
-	velocity = move_and_slide(velocity)
 	
 	if Input.is_action_just_pressed("attack"):
 		state = ATTACK
+	if Input.is_action_just_pressed("roll"):
+		state = ROLL
+	move()
 
 func attack_state():
 	# Reset velocity to avoid "sliding" effect at the end of animation
 	velocity = Vector2.ZERO
 	animationState.travel("Attack")
 
+func roll_state():
+	velocity = roll_vector * ROLL_SPEED
+	move()
+	animationState.travel("Roll")
+
 # This function is triggered at the end of attack animations to let the
 # system know that the animation finished & state can change
 func attack_animation_finished():
 	state = MOVE
+
+func roll_animation_finished():
+	velocity = Vector2.ZERO
+	state = MOVE
+
+func move():
+	velocity = move_and_slide(velocity)
+	
