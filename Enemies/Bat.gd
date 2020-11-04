@@ -1,5 +1,7 @@
 extends KinematicBody2D
 
+const DeathEffect = preload("res://Effects/BatDeathEffect.tscn")
+
 export var FRICTION = 200
 export var ACCELERATION = 120
 
@@ -17,3 +19,6 @@ func _on_Hurtbox_area_entered(area):
 
 func _on_Stats_health_depleted():
 	queue_free()
+	var deathEffect = DeathEffect.instance()
+	get_parent().add_child(deathEffect)
+	deathEffect.global_position = global_position
